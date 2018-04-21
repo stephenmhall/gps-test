@@ -1,0 +1,156 @@
+#include <Arduino.h>
+#include <Adafruit_GPS.h>    //Install the adafruit GPS library
+#include <SoftwareSerial.h> //Load the Software Serial library
+
+SoftwareSerial mySerial(D5, D6); //Initialize the Software Serial port
+Adafruit_GPS GPS(&mySerial); //Create the GPS Object
+
+String NMEA1; //Variable for first NMEA sentence
+String NMEA2; //Variable for second NMEA sentence
+char c; //to read characters coming from the GPS
+
+//int chipSelect = 4; //chipSelect pin for the SD card Reader
+//File mySensorData; //Data object you will write your sesnor data to
+
+void clearGPS() {  //Clear old and corrupt data from serial port
+  while(!GPS.newNMEAreceived()) { //Loop until you have a good NMEA sentence
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA()); //Parse that last good NMEA sentence
+
+  while(!GPS.newNMEAreceived()) { //Loop until you have a good NMEA sentence
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA()); //Parse that last good NMEA sentence
+   while(!GPS.newNMEAreceived()) { //Loop until you have a good NMEA sentence
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA()); //Parse that last good NMEA sentence
+
+}
+
+void readGPS() {
+
+  clearGPS();
+  while(!GPS.newNMEAreceived()) { //Loop until you have a good NMEA sentence
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA()); //Parse that last good NMEA sentence
+  NMEA1=GPS.lastNMEA();
+
+   while(!GPS.newNMEAreceived()) { //Loop until you have a good NMEA sentence
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA()); //Parse that last good NMEA sentence
+  NMEA2=GPS.lastNMEA();
+
+  Serial.println(NMEA1);
+  Serial.println(NMEA2);
+  Serial.println("");
+}
+
+void setup() {
+
+  Serial.begin(115200); //Turn on serial monitor
+  GPS.begin(9600); //Turn on GPS at 9600 baud
+  GPS.sendCommand("$PGCMD,33,0*6D");  //Turn off antenna update nuisance data
+  /*
+  GPS.sendCommand("$PUBX,40,GLL,0,0,0,0*5C");  //Turn off GLL
+  delay(100);
+  GPS.sendCommand("$PUBX,40,GSV,0,0,0,0*59");  //Turn off GLL
+  delay(100);
+  GPS.sendCommand("$PUBX,40,GSA,0,0,0,0*4E");  //Turn off GLL
+  delay(100);
+  GPS.sendCommand("$PUBX,40,VTG,0,0,0,0*5E");  //Turn off GLL
+  delay(100);
+
+*/
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); //Request RMC and GGA Sentences only
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); //Set update rate to 1 hz
+  delay(1000);
+/*
+  pinMode(10, OUTPUT); //Must declare 10 an output and reserve it to keep SD card happy
+  SD.begin(chipSelect); //Initialize the SD card reader
+
+  if (SD.exists("NMEA.txt")) { //Delete old data files to start fresh
+    SD.remove("NMEA.txt");
+  }
+  if (SD.exists("GPSData.txt")) { //Delete old data files to start fresh
+    SD.remove("GPSData.txt");
+  }*/
+
+}
+
+void loop() {
+
+  readGPS();
+  yield();
+ /*
+  if(GPS.fix==1) { //Only save data if we have a fix
+  mySensorData = SD.open("NMEA.txt", FILE_WRITE); //Open file on SD card for writing
+  mySensorData.println(NMEA1); //Write first NMEA to SD card
+  mySensorData.println(NMEA2); //Write Second NMEA to SD card
+  mySensorData.close();  //Close the file
+  mySensorData = SD.open("GPSData.txt", FILE_WRITE);
+  mySensorData.print(GPS.latitude,4); //Write measured latitude to file
+  mySensorData.print(GPS.lat); //Which hemisphere N or S
+  mySensorData.print(",");
+  mySensorData.print(GPS.longitude,4); //Write measured longitude to file
+  mySensorData.print(GPS.lon); //Which Hemisphere E or W
+  mySensorData.print(",");
+  mySensorData.println(GPS.altitude);
+  mySensorData.close();
+}*/
+
+}
+
+
+----------------------------
+#include <Arduino.h>
+#include <SoftwareSerial.h>
+
+SoftwareSerial mySerial(D5, D6); // RX, TX
+
+void setup() {
+  // Open serial communications and wait for port to open:
+  Serial.begin(115200);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  Serial.println("Goodnight moon!");
+
+  // set the data rate for the SoftwareSerial port
+  mySerial.begin(9600);
+  delay(2000);
+  mySerial.println("$PUBX,40,GLL,0,0,0,0*5C");
+  //mySerial.println("$PUBX,40,GLL,0,1,0,0*5D"); //on
+  mySerial.println("$PUBX,40,GSV,0,0,0,0*59");
+  //mySerial.println("$PUBX,40,GSV,1,0,0,0*58"); //on
+  mySerial.println("$PUBX,40,GSA,0,0,0,0*4E");
+  mySerial.println("$PUBX,40,VTG,0,0,0,0*5E");
+  //mySerial.println("Hello, world?");
+}
+
+void loop() { // run over and over
+
+  String content = "";
+  char character;
+
+  while(mySerial.available()) {
+      character = mySerial.read();
+      content.concat(character);
+      delay(1);
+  }
+
+  if (content != "") {
+    Serial.println(content);
+  }
+
+  /*
+  if (mySerial.available()) {
+    Serial.write(mySerial.read());
+  }*/
+  if (Serial.available()) {
+    mySerial.write(Serial.read());
+  }
+}
