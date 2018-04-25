@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include "FS.h"
 
 SoftwareSerial mySerial(D5, D6); // RX, TX
 SoftwareSerial radio(D7, D8);
@@ -82,13 +81,13 @@ void speedUpdate(){
   float speed = getValue(GPRMC, ',', 7).toFloat() * ktomph;
 
   if(speed < 10.0){
-    sendUpdate = 10000;
+    sendUpdate = 60000;
   }else if(speed > 10 && speed < 30) {
-    sendUpdate = 5000;
+    sendUpdate = 30000;
   }else if(speed >= 30 && speed < 60){
-    sendUpdate = 3000;
+    sendUpdate = 20000;
   }else{
-    sendUpdate = 1000;
+    sendUpdate = 10000;
   }
 }
 
@@ -100,8 +99,6 @@ void setup() {
   radio.begin (9600);
   delay(500);
   // always use this to "mount" the filesystem
-  bool result = SPIFFS.begin();
-  Serial.println("SPIFFS opened: " + result);
 
   Serial.println("\n");
   Serial.println("GPS Engine starting");
