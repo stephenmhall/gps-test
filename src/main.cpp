@@ -5,6 +5,7 @@ SoftwareSerial mySerial(D5, D6); // RX, TX
 SoftwareSerial radio(D7, D8);
 
 const float ktomph = 1.15077944802354;
+const String target_issi = "6698705";
 
 String GPRMC = "";
 String GPGGA = "";
@@ -44,8 +45,12 @@ void Send_GPS(){
   convertstring(GPRMC);
   radio.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\n\r");
   Serial.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\n\r");
-  radio.print("AT+CMGS=6785003,");//6789946
-  Serial.print("AT+CMGS=6785003,");//6789946
+  radio.print("AT+CMGS=");//6789946
+  radio.print(target_issi);
+  radio.print(",");
+  Serial.print("AT+CMGS=");//6789946
+  Serial.print(target_issi);
+  Serial.print(",");
   Hexstring1 = "82040101" + Hexstring1;
   Hexstringlength = (Hexstringlength * 8 + 32);
   radio.print(Hexstringlength);
