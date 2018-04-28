@@ -10,7 +10,7 @@ const String target_issi = "6698705";
 String GPRMC = "";
 String GPGGA = "";
 unsigned long updateTime;
-int sendUpdate = 10000;// 60 seconds
+unsigned long sendUpdate = 10000;// 60 seconds
 String Hexstring0, Hexstring1;
 int Hexstringlength;
 
