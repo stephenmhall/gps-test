@@ -35,30 +35,41 @@ String getValue(String data, char separator, int index)
 void convertstring(String hex){
   Hexstring0  = String(hex);
   Hexstring1  = String();
-  Hexstringlength = (Hexstring0.length() + 1);
+  Hexstringlength = Hexstring0.length() - 1;
 for(int x = 0; x < Hexstringlength; x++){
     Hexstring1 = Hexstring1 + (String(Hexstring0.charAt(x),HEX));
     }
   }
+/*
+  Command:
+AT+CTSD=12,0,0,0,0,0,0,0,0,0
+AT+CMGS=01234567,160<CR><LF>
+8204010130313233343536373839414243444546
+82040101 = SDS-TL Header (Refer to EN 300 392-2 section 29)
+Length is actual user data bit length include SDS-TL header = 160bit ([SDS-TL Header = 32]
++ [User Data 16chracter x 8 = 128])
+*/
 
 void Send_GPS(){
   convertstring(GPRMC);
-  radio.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\n\r");
-  Serial.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\n\r");
-  radio.print("AT+CMGS=");//6789946
-  radio.print(target_issi);
-  radio.print(",");
-  Serial.print("AT+CMGS=");//6789946
-  Serial.print(target_issi);
-  Serial.print(",");
   Hexstring1 = "82040101" + Hexstring1;
   Hexstringlength = (Hexstringlength * 8 + 32);
+  //write to radio
+  radio.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\r\n");
+  radio.print("AT+CMGS=");
+  radio.print(target_issi);
+  radio.print(",");
   radio.print(Hexstringlength);
-  Serial.print(Hexstringlength);
-  radio.print("\n\r");
-  Serial.print("\n\r");
+  radio.print("\r\n");
   radio.print(Hexstring1);
-  Serial.println(Hexstring1);
+  //write to serial port
+  Serial.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\r\n");
+  Serial.print("AT+CMGS=");
+  Serial.print(target_issi);
+  Serial.print(",");
+  Serial.print(Hexstringlength);
+  Serial.print("\r\n");
+  Serial.print(Hexstring1);
   Hexstring0 = "";
   Hexstring1 = "";
 }
@@ -109,18 +120,17 @@ void setup() {
   Serial.println("GPS Engine starting");
 
   //Turn off most messages
-  mySerial.println("$PUBX,40,GLL,0,0,0,0*5C");
+  //mySerial.println("$PUBX,40,GLL,0,0,0,0*5C");
   //mySerial.println("$PUBX,40,GLL,0,1,0,0*5D"); //on
-  mySerial.println("$PUBX,40,GSV,0,0,0,0*59");
+  //mySerial.println("$PUBX,40,GSV,0,0,0,0*59");
   //mySerial.println("$PUBX,40,GSV,1,0,0,0*58"); //on
-  mySerial.println("$PUBX,40,GSA,0,0,0,0*4E");
-  mySerial.println("$PUBX,40,VTG,0,0,0,0*5E");
+  //mySerial.println("$PUBX,40,GSA,0,0,0,0*4E");
+  //mySerial.println("$PUBX,40,VTG,0,0,0,0*5E");
 }
 
 void loop() { // run over and over
   unsigned long loopTime = millis();
   String content = "";
-  char character;
 
   if(mySerial.available()){
     content = mySerial.readStringUntil('\n');
@@ -130,7 +140,7 @@ void loop() { // run over and over
     //Serial.println(content);
     if(content.startsWith("RMC", 3)) {
       GPRMC = content;
-      //Serial.println(GPRMC);
+      //Serial.print(GPRMC);
     }
     if(content.startsWith("GGA", 3)) {
       GPGGA = content;
