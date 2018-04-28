@@ -158,4 +158,8 @@ void loop() { // run over and over
   if (Serial.available()) {
     mySerial.write(Serial.read());
   }
+  if (radio.available()) {
+    String reply = radio.readStringUntil('\n');
+    Serial.println(reply);
+  }
 }
