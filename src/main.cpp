@@ -62,6 +62,7 @@ void Send_GPS(){
   radio.print(Hexstringlength);
   radio.print("\r\n");
   radio.print(Hexstring1);
+  radio.print("\r\n");
   //write to serial port
   Serial.print("AT+CTSD=12,0,0,0,0,0,0,0,0,0\r\n");
   Serial.print("AT+CMGS=");
